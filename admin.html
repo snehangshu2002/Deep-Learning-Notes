@@ -77,53 +77,80 @@
     <!-- ── ADMIN DASHBOARD ── -->
     <div class="dashboard-wrapper hidden" id="dashboard-wrapper">
 
+        <!-- Mobile nav drawer overlay -->
+        <div class="drawer-overlay" id="drawer-overlay"></div>
+
         <!-- SIDEBAR -->
-        <aside class="dashboard-sidebar glass-panel">
-            <div class="sidebar-brand">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-                    stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                    <path d="M2 17l10 5 10-5"></path>
-                    <path d="M2 12l10 5 10-5"></path>
-                </svg>
-                <span>Admin</span>
+        <aside class="dashboard-sidebar" id="admin-sidebar">
+            <!-- Top header with brand and collapse button -->
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <div class="sidebar-icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <div class="sidebar-brand-text">
+                        <h1>Admin</h1>
+                        <p class="sidebar-sub">Dashboard</p>
+                    </div>
+                </div>
+                <button class="top-collapse-btn" id="sidebar-collapse-btn" aria-label="Toggle sidebar"
+                    title="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                </button>
             </div>
 
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    Manage Notes
-                </a>
-                <a href="./index.html" class="nav-item target-blank">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                        <polyline points="15 3 21 3 21 9"></polyline>
-                        <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
-                    View Live Site
-                </a>
-            </nav>
+            <div class="sidebar-inner">
+                <!-- Navigation -->
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-tooltip="Manage Notes">
+                        <span class="nav-item-icon">📄</span>
+                        <span class="nav-item-label">Manage Notes</span>
+                    </a>
+                    <a href="./index.html" class="nav-item" data-tooltip="View Live Site">
+                        <span class="nav-item-icon">🌐</span>
+                        <span class="nav-item-label">View Live Site</span>
+                    </a>
+                </nav>
 
-            <div class="sidebar-footer">
-                <button id="logout-btn" class="btn-secondary">
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Sign Out
-                </button>
+                <!-- Footer -->
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span class="collapse-hide">Sign Out</span>
+                    </button>
+                </div>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
+
+            <!-- Mobile top bar (hamburger + title) — hidden on desktop -->
+            <div class="mobile-topbar">
+                <button class="hamburger-btn-top" id="hamburger-btn-top" title="Menu" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                        <line x1="3" y1="6"  x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <span class="mobile-topbar-title">Admin Dashboard</span>
+            </div>
+
             <header class="dashboard-header">
                 <h1>Upload New Note</h1>
                 <p>Add PDF notes directly to your database</p>
@@ -273,6 +300,58 @@
     </div>
 
     <script type="module" src="./admin.js"></script>
+
+    <!-- Sidebar collapse + mobile drawer toggle -->
+    <script>
+        (function () {
+            const STORAGE_KEY = 'admin_sidebar_collapsed';
+            const wrapper    = document.getElementById('dashboard-wrapper');
+            const collapseBtn = document.getElementById('sidebar-collapse-btn');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const overlay    = document.getElementById('drawer-overlay');
+            const sidebar  = document.getElementById('admin-sidebar');
+            if (!wrapper) return;
+
+            /* ── Desktop collapse ── */
+            if (collapseBtn) {
+                if (localStorage.getItem(STORAGE_KEY) === 'true') {
+                    wrapper.classList.add('sidebar-collapsed');
+                }
+                collapseBtn.addEventListener('click', function () {
+                    const collapsed = wrapper.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem(STORAGE_KEY, collapsed);
+                });
+            }
+
+            /* ── Mobile drawer ── */
+            function openDrawer()  { wrapper.classList.add('drawer-open'); }
+            function closeDrawer() { wrapper.classList.remove('drawer-open'); }
+
+            if (hamburgerBtn) hamburgerBtn.addEventListener('click', openDrawer);
+            const hamburgerTop = document.getElementById('hamburger-btn-top');
+            if (hamburgerTop) hamburgerTop.addEventListener('click', openDrawer);
+            if (overlay)      overlay.addEventListener('click', closeDrawer);
+
+            /* Close drawer when a nav link is tapped on mobile */
+            document.querySelectorAll('.nav-item').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    if (window.innerWidth <= 1023) closeDrawer();
+                });
+            });
+
+            /* ── Click collapsed sidebar to expand (desktop only) ── */
+            if (sidebar) {
+                sidebar.addEventListener('click', function(e) {
+                    if (wrapper.classList.contains('sidebar-collapsed') && window.innerWidth > 1023) {
+                        // Don't expand if clicking on the collapse button itself
+                        if (e.target.closest('.top-collapse-btn')) return;
+                        wrapper.classList.remove('sidebar-collapsed');
+                        localStorage.setItem(STORAGE_KEY, 'false');
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>
