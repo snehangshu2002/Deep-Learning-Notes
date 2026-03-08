@@ -50,15 +50,21 @@ const uploadStatus = document.getElementById('upload-status');
 const notesTableBody = document.getElementById('notes-table-body');
 const refreshNotesBtn = document.getElementById('refresh-notes');
 
+const ghNotesTableBody = document.getElementById('gh-notes-table-body');
+const refreshGhNotesBtn = document.getElementById('refresh-gh-notes');
 // ── STATE ──
 let selectedFile = null;
+let trackedFilePaths = new Set();
 
 // ═══════════════════════════════════════
 // AUTHENTICATION (Firebase)
 // ═══════════════════════════════════════
 
 onAuthStateChanged(auth, (user) => {
-    if (user) { showDashboard(); fetchNotes(); }
+    if (user) {
+        showDashboard();
+        fetchNotes().then(() => fetchGitHubFiles());
+    }
     else { showLogin(); }
 });
 
@@ -310,33 +316,37 @@ async function fetchNotes() {
                 : 'Just now';
             const typeLabel = { pdf: '📄 PDF', html: '🌐 HTML', image: '🖼️ Image' }[note.file_type] || '📁 File';
 
+            // Track file paths that exist in Firestore
+            if (note.file_name) trackedFilePaths.add(note.file_name);
+            if (note.file_path) trackedFilePaths.add(note.file_path);
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${note.title}</strong></td>
-                <td><span class="badge cat-${note.category}">${note.category}</span></td>
-                <td><span style="font-size:.8rem;color:var(--text-muted)">${typeLabel}</span></td>
-                <td style="color:var(--text-muted);font-size:.85rem">${date}</td>
-                <td>
-                    <div style="display:flex;gap:8px">
-                        <a href="${note.file_url}" target="_blank" class="icon-btn" title="View file">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                <polyline points="15 3 21 3 21 9"></polyline>
-                                <line x1="10" y1="14" x2="21" y2="3"></line>
-                            </svg>
-                        </a>
-                        <button class="icon-btn delete-btn"
-                            data-id="${note.id}"
-                            data-path="${note.file_path || ''}"
-                            data-sha="${note.file_sha || ''}"
-                            title="Delete">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--danger)" stroke-width="2" fill="none">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </td>`;
+                    <td><strong>${note.title}</strong></td>
+                    <td><span class="badge cat-${note.category}">${note.category}</span></td>
+                    <td><span style="font-size:.8rem;color:var(--text-muted)">${typeLabel}</span></td>
+                    <td style="color:var(--text-muted);font-size:.85rem">${date}</td>
+                    <td>
+                        <div style="display:flex;gap:8px">
+                            <a href="${note.file_url}" target="_blank" class="icon-btn" title="View file">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                            <button class="icon-btn delete-btn"
+                                data-id="${note.id}"
+                                data-path="${note.file_path || ''}"
+                                data-sha="${note.file_sha || ''}"
+                                title="Delete">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--danger)" stroke-width="2" fill="none">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>`;
             notesTableBody.appendChild(tr);
         });
 
@@ -359,6 +369,167 @@ refreshNotesBtn.addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════
+// FETCH GITHUB FILES
+// ═══════════════════════════════════════
+async function fetchGitHubFiles() {
+    ghNotesTableBody.innerHTML = '<tr><td colspan="4" class="text-center loading-cell">Fetching from GitHub...</td></tr>';
+    try {
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FOLDER}?ref=${GH_BRANCH}`;
+        const res = await fetch(url, {
+            headers: {
+                Authorization: `token ${GH_TOKEN}`,
+                Accept: 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (!res.ok) {
+            if (res.status === 404) {
+                // Folder hasn't been created yet / is empty
+                ghNotesTableBody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding:24px;color:var(--text-muted)">No files found in GitHub yet.</td></tr>';
+                return;
+            }
+            throw new Error(`GitHub API Error: ${res.status}`);
+        }
+
+        let files = await res.json();
+        // filter out non-files if any directories exist
+        files = files.filter(f => f.type === 'file');
+
+        if (files.length === 0) {
+            ghNotesTableBody.innerHTML = '<tr><td colspan="4" class="text-center" style="padding:24px;color:var(--text-muted)">No files found in GitHub.</td></tr>';
+            return;
+        }
+
+        // Sort descending by name as a proxy for date since GitHub contents API doesn't return dates
+        files.sort((a, b) => b.name.localeCompare(a.name));
+
+        ghNotesTableBody.innerHTML = '';
+        files.forEach(file => {
+            const isTracked = trackedFilePaths.has(file.name) || trackedFilePaths.has(file.path);
+            const statusBadge = isTracked
+                ? '<span class="badge" style="background:rgba(16,185,129,0.15);color:#34d399">Synced</span>'
+                : '<span class="badge" style="background:rgba(245,158,11,0.15);color:#fbbf24">Untracked</span>';
+
+            const sizeKb = (file.size / 1024).toFixed(1) + ' KB';
+            const cdnUrl = `https://cdn.jsdelivr.net/gh/${GH_OWNER}/${GH_REPO}@${GH_BRANCH}/${file.path}`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${file.name}</strong></td>
+                <td style="color:var(--text-muted);font-size:.85rem">${sizeKb}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div style="display:flex;gap:8px">
+                        <a href="${file.html_url}" target="_blank" class="icon-btn" title="View on GitHub">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                            </svg>
+                        </a>
+                        <button class="icon-btn delete-gh-btn"
+                            data-path="${file.path}"
+                            data-sha="${file.sha}"
+                            title="Delete file from GitHub">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--danger)" stroke-width="2" fill="none">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                        ${!isTracked ? `
+                        <button class="icon-btn sync-gh-btn"
+                            data-name="${file.name}"
+                            data-path="${file.path}"
+                            data-url="${cdnUrl}"
+                            title="Add to Database">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="var(--success)" stroke-width="2" fill="none">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>`;
+            ghNotesTableBody.appendChild(tr);
+        });
+
+        // Add delete listeners for GitHub files
+        document.querySelectorAll('.delete-gh-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('Delete this file permanently from GitHub? This cannot be undone.')) return;
+                const { path, sha } = e.currentTarget.dataset;
+                try {
+                    btn.style.opacity = '0.5';
+                    btn.style.pointerEvents = 'none';
+                    await githubDelete(path, sha);
+                    showUploadStatus(`Deleted ${path} from GitHub`);
+                    fetchGitHubFiles();
+                } catch (err) {
+                    alert('GitHub delete failed: ' + err.message);
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            });
+        });
+
+        // Add sync listeners for Untracked files
+        document.querySelectorAll('.sync-gh-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const { name, path, url } = e.currentTarget.dataset;
+
+                // Prompt user for category and title
+                let title = name.replace(/\.(pdf|html|htm|png|jpg|jpeg|gif|webp|svg)$/i, '');
+                title = title.replace(/[-_]/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+                const confirmedTitle = prompt(`Enter a title for this note:`, title);
+                if (!confirmedTitle) return;
+
+                const categoryStr = prompt(`Enter exactly ONE of these categories:\nBasics, RNN, LSTM, Transformers, CNN, Optimization, Advanced`, 'Basics');
+                if (!categoryStr) return;
+
+                // Determine type based on extension
+                let extMatch = name.match(/\.([^.]+)$/);
+                let ext = extMatch ? extMatch[1].toLowerCase() : 'pdf';
+                let fileType = 'pdf';
+                if (['html', 'htm'].includes(ext)) fileType = 'html';
+                if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) fileType = 'image';
+
+                try {
+                    btn.style.opacity = '0.5';
+                    btn.style.pointerEvents = 'none';
+
+                    await addDoc(collection(db, 'notes'), {
+                        title: confirmedTitle,
+                        category: categoryStr,
+                        description: 'Imported from GitHub',
+                        tags: [],
+                        file_name: name,
+                        file_path: path,
+                        file_url: url,
+                        file_type: fileType,
+                        created_at: serverTimestamp()
+                    });
+
+                    showUploadStatus(`Synced ${name} to database!`, 'success');
+                    fetchNotes().then(() => fetchGitHubFiles()); // Refresh both tables
+                } catch (err) {
+                    alert('Sync failed: ' + err.message);
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            });
+        });
+
+    } catch (err) {
+        ghNotesTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--danger)">Error: ${err.message}</td></tr>`;
+    }
+}
+
+refreshGhNotesBtn.addEventListener('click', () => {
+    const icon = refreshGhNotesBtn.querySelector('svg');
+    icon.style.cssText = 'transform:rotate(180deg);transition:transform .3s';
+    fetchGitHubFiles().then(() => setTimeout(() => icon.style.transform = 'none', 300));
+});
+
+// ═══════════════════════════════════════
 // DELETE (GitHub + Firestore)
 // ═══════════════════════════════════════
 
@@ -374,6 +545,6 @@ async function deleteNote(id, filePath, sha) {
         showUploadStatus('Note deleted successfully.');
         fetchNotes();
     } catch (err) {
-        alert(`Failed to delete: ${err.message}`);
+        alert(`Failed to delete: ${err.message} `);
     }
 }

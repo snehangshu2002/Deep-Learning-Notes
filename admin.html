@@ -195,40 +195,78 @@
                     </form>
                 </section>
 
-                <!-- RECENT NOTES TABLE -->
-                <section class="recent-notes glass-panel">
-                    <div class="section-header">
-                        <h2>Recently Uploaded</h2>
-                        <button class="icon-btn" id="refresh-notes" title="Refresh list">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
-                                fill="none">
-                                <polyline points="23 4 23 10 17 10"></polyline>
-                                <polyline points="1 20 1 14 7 14"></polyline>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                            </svg>
-                        </button>
-                    </div>
+                <!-- TABLES COLUMN -->
+                <div class="tables-column">
+                    <!-- RECENT NOTES TABLE -->
+                    <section class="recent-notes glass-panel">
+                        <div class="section-header">
+                            <h2>Recently Uploaded</h2>
+                            <button class="icon-btn" id="refresh-notes" title="Refresh list">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                    fill="none">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
 
-                    <div class="table-container">
-                        <table class="notes-table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Type</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="notes-table-body">
-                                <!-- Populated by JS -->
-                                <tr>
-                                    <td colspan="4" class="text-center loading-cell">Loading notes...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+                        <div class="table-container">
+                            <table class="notes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="notes-table-body">
+                                    <!-- Populated by JS -->
+                                    <tr>
+                                        <td colspan="4" class="text-center loading-cell">Loading notes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- GITHUB FILES TABLE -->
+                    <section class="recent-notes glass-panel" style="margin-top: 2rem;">
+                        <div class="section-header">
+                            <h2>All Files in GitHub</h2>
+                            <button class="icon-btn" id="refresh-gh-notes" title="Refresh list">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                    fill="none">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="notes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Filename</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gh-notes-table-body">
+                                    <tr>
+                                        <td colspan="4" class="text-center loading-cell">Loading files...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
 
             </div>
         </main>

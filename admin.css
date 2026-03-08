@@ -257,6 +257,12 @@ body.dark-theme {
     }
 }
 
+.tables-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
 /* ── UPLOAD SECTION ── */
 .upload-section {
     padding: 24px;
