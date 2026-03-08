@@ -51,6 +51,8 @@
 html,
 body {
     height: 100%;
+    /* Use dvh (dynamic viewport height) with vh fallback to handle mobile browser chrome */
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -147,6 +149,8 @@ body {
     grid-template-columns: var(--sidebar-w) 1fr var(--toc-w);
     grid-template-rows: 1fr;
     height: 100vh;
+    height: 100dvh;
+    /* dvh accounts for mobile browser address bar */
     transition: grid-template-columns 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
