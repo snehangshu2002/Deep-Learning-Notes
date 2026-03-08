@@ -65,6 +65,7 @@ const appLayout = document.querySelector('.app-layout');
 
 // ── STATE ──
 let activeNoteId = null;
+let currentSearchQuery = ''; // Tracks last search query for highlighting
 
 // ═══════════════════════════════════════
 // SIDEBAR RENDERING
@@ -166,11 +167,18 @@ function loadNote(noteId) {
                     noteFrame.onload = () => {
                         extractTableOfContents();
                         resetZoom();
+                        if (currentSearchQuery) highlightSearchTermInIframe(currentSearchQuery);
                         try {
                             const iframeDoc = noteFrame.contentDocument || noteFrame.contentWindow.document;
                             iframeDoc.addEventListener('mousemove', resetIdleTimer);
                             iframeDoc.addEventListener('touchstart', resetIdleTimer);
-                            iframeDoc.addEventListener('keydown', resetIdleTimer);
+                            iframeDoc.addEventListener('keydown', (e) => {
+                                resetIdleTimer();
+                                if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                                    e.preventDefault();
+                                    searchInput.focus();
+                                }
+                            });
                             resetIdleTimer();
                         } catch (e) { }
                     };
@@ -197,17 +205,24 @@ function loadNote(noteId) {
         noteFrame.src = `./notes/${note.file}`;
     }
 
-    // Extract ToC once the iframe loads and reset zoom
+    // Extract ToC once the iframe loads, reset zoom, and apply any active search highlight
     noteFrame.onload = () => {
         extractTableOfContents();
         resetZoom();
+        if (currentSearchQuery) highlightSearchTermInIframe(currentSearchQuery);
 
         // Bind idle listeners to the iframe document
         try {
             const iframeDoc = noteFrame.contentDocument || noteFrame.contentWindow.document;
             iframeDoc.addEventListener('mousemove', resetIdleTimer);
             iframeDoc.addEventListener('touchstart', resetIdleTimer);
-            iframeDoc.addEventListener('keydown', resetIdleTimer);
+            iframeDoc.addEventListener('keydown', (e) => {
+                resetIdleTimer();
+                if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
             resetIdleTimer();
         } catch (e) { }
     };
@@ -289,9 +304,18 @@ function loadNoteFromHash() {
 
         // Inject dynamic stats into welcome screen
         try {
-            const doc = noteFrame.contentDocument || noteFrame.contentWindow.document;
-            const notesEl = doc.getElementById('stat-notes');
-            const catsEl = doc.getElementById('stat-categories');
+            const iframeDoc = noteFrame.contentDocument || noteFrame.contentWindow.document;
+            iframeDoc.addEventListener('mousemove', resetIdleTimer);
+            iframeDoc.addEventListener('touchstart', resetIdleTimer);
+            iframeDoc.addEventListener('keydown', (e) => {
+                resetIdleTimer();
+                if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+            const notesEl = iframeDoc.getElementById('stat-notes');
+            const catsEl = iframeDoc.getElementById('stat-categories');
 
             if (notesEl && catsEl) {
                 notesEl.textContent = NOTES.length;
@@ -342,11 +366,94 @@ function extractTableOfContents() {
 // ═══════════════════════════════════════
 // SEARCH
 // ═══════════════════════════════════════
+
+/**
+ * Walks all text nodes inside the iframe and wraps matches in <mark> elements.
+ * Skips nodes inside <script>, <style>, and <mark> tags to avoid double-wrapping.
+ */
+function highlightSearchTermInIframe(query) {
+    try {
+        const iframeDoc = noteFrame.contentDocument || noteFrame.contentWindow.document;
+        if (!iframeDoc || !iframeDoc.body) return;
+
+        // Remove any previous highlights first
+        iframeDoc.querySelectorAll('mark.search-highlight').forEach(mark => {
+            const parent = mark.parentNode;
+            parent.replaceChild(iframeDoc.createTextNode(mark.textContent), mark);
+            parent.normalize();
+        });
+
+        if (!query || query.trim().length < 2) return;
+
+        const q = query.trim();
+        const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        const skipTags = new Set(['SCRIPT', 'STYLE', 'MARK', 'TEXTAREA', 'INPUT']);
+
+        function walkAndHighlight(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.nodeValue;
+                if (!regex.test(text)) { regex.lastIndex = 0; return; }
+                regex.lastIndex = 0;
+
+                const fragment = iframeDoc.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(iframeDoc.createTextNode(text.slice(lastIndex, match.index)));
+                    }
+                    const mark = iframeDoc.createElement('mark');
+                    mark.className = 'search-highlight';
+                    mark.textContent = match[0];
+                    fragment.appendChild(mark);
+                    lastIndex = match.index + match[0].length;
+                }
+                if (lastIndex < text.length) {
+                    fragment.appendChild(iframeDoc.createTextNode(text.slice(lastIndex)));
+                }
+                node.parentNode.replaceChild(fragment, node);
+            } else if (node.nodeType === Node.ELEMENT_NODE && !skipTags.has(node.tagName)) {
+                Array.from(node.childNodes).forEach(walkAndHighlight);
+            }
+        }
+
+        walkAndHighlight(iframeDoc.body);
+
+        // Inject highlight styles if not already present
+        if (!iframeDoc.getElementById('search-highlight-style')) {
+            const style = iframeDoc.createElement('style');
+            style.id = 'search-highlight-style';
+            style.textContent = `
+                mark.search-highlight {
+                    background: rgba(255, 107, 0, 0.35);
+                    color: inherit;
+                    border-radius: 3px;
+                    padding: 0 2px;
+                    box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.5);
+                    font-style: inherit;
+                    font-weight: inherit;
+                }
+            `;
+            iframeDoc.head.appendChild(style);
+        }
+
+        // Scroll to the first match
+        const firstMark = iframeDoc.querySelector('mark.search-highlight');
+        if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch (e) {
+        console.warn('Could not highlight in iframe:', e.message);
+    }
+}
+
 function performSearch(query) {
     const q = query.toLowerCase().trim();
+    currentSearchQuery = q;
 
     if (!q) {
         renderNavTree(NOTES);
+        // Remove any existing highlights if search is cleared
+        highlightSearchTermInIframe('');
         return;
     }
 
@@ -356,6 +463,7 @@ function performSearch(query) {
             note.description,
             note.category,
             ...(note.tags || []),
+            note.textContent || '' // Include the full text content in the searchable string
         ].join(' ').toLowerCase();
         return searchable.includes(q);
     });
@@ -424,7 +532,11 @@ collapseBtn.addEventListener('click', toggleSidebarCollapse);
 // Allow clicking anywhere on the collapsed sidebar to expand it
 sidebar.addEventListener('click', (e) => {
     // Only fire if the sidebar is collapsed and the click isn't on the toggle button itself (handled above)
-    if (sidebar.classList.contains('collapsed') && !e.target.closest('#sidebar-collapse-btn')) {
+    // Also ignore clicks on navigation items and links, so they can function without expanding the sidebar
+    if (sidebar.classList.contains('collapsed') &&
+        !e.target.closest('#sidebar-collapse-btn') &&
+        !e.target.closest('.nav-item') &&
+        !e.target.closest('.sidebar-link')) {
         toggleSidebarCollapse();
     }
 });
@@ -546,6 +658,38 @@ async function fetchNotes() {
 async function init() {
     // Fetch data first
     await fetchNotes();
+
+    // Fetch the text content of all notes for full-text search
+    await Promise.all(NOTES.map(async (note) => {
+        try {
+            // ── Local HTML files ──
+            if (!note.isExternalUrl && note.file.endsWith('.html')) {
+                const response = await fetch(`./notes/${note.file}`);
+                if (response.ok) {
+                    const html = await response.text();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    note.textContent = tempDiv.textContent || tempDiv.innerText || '';
+                }
+            }
+
+            // ── External PDF files – extract via PDF.js ──
+            if (note.isExternalUrl && note.fileType === 'pdf' && note.file) {
+                const loadingTask = pdfjsLib.getDocument(note.file);
+                const pdf = await loadingTask.promise;
+                let fullText = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + ' ';
+                }
+                note.textContent = fullText.trim();
+            }
+        } catch (e) {
+            console.warn(`Could not index content for "${note.title}":`, e.message);
+        }
+    }));
 
     // Render sidebar
     renderNavTree(NOTES);

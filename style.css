@@ -223,6 +223,7 @@ body {
     gap: 12px;
     overflow: hidden;
     transition: opacity 0.2s, transform 0.2s;
+    text-decoration: none;
 }
 
 .sidebar-icon {
@@ -1168,4 +1169,72 @@ body {
 
 .nav-category:nth-child(6) {
     animation-delay: 0.3s;
+}
+
+/* ── Fallback Actions ── */
+.chat-fallback-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+}
+
+.fallback-label {
+    color: var(--text-muted);
+    margin-right: auto;
+}
+
+.fallback-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fallback-btn svg {
+    color: var(--text-muted);
+}
+
+.fallback-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.fallback-btn:hover svg {
+    color: var(--accent);
+}
+
+/* ── Chat Toast ── */
+.chat-toast {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chat-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
