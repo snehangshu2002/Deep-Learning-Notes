@@ -301,14 +301,7 @@ function extractTableOfContents() {
 
         if (headings.length === 0) {
             tocList.innerHTML = '<div class="toc-empty">No headings found</div>';
-            // Auto-hide ToC when there are no headings
-            appLayout.classList.add('toc-collapsed');
             return;
-        }
-
-        // Auto-show ToC if the user hasn't explicitly collapsed it
-        if (localStorage.getItem('toc-collapsed') !== '1') {
-            appLayout.classList.remove('toc-collapsed');
         }
 
         headings.forEach((heading, i) => {
@@ -539,15 +532,15 @@ async function init() {
     // Fetch data first
     await fetchNotes();
 
-    // Restore layout state
-    restoreSidebarState();
-    restoreTocState();
-
     // Render sidebar
     renderNavTree(NOTES);
 
     // Load from hash or show welcome
     loadNoteFromHash();
+
+    // Restore layout state (must be after hash so activeNoteId is correct)
+    restoreSidebarState();
+    restoreTocState();
 
     // Listen to hash changes (back/forward)
     window.addEventListener('hashchange', loadNoteFromHash);
