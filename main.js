@@ -422,6 +422,7 @@ sidebar.addEventListener('click', (e) => {
 });
 
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
 // TOC COLLAPSE
 // ═══════════════════════════════════════
 function toggleTocCollapse() {
@@ -431,9 +432,12 @@ function toggleTocCollapse() {
 }
 
 function restoreTocState() {
-    if (localStorage.getItem('toc-collapsed') === '1') {
+    // Force collapsed on initial load if no note is active, otherwise respect local storage
+    if (!activeNoteId || localStorage.getItem('toc-collapsed') === '1') {
         appLayout.classList.add('toc-collapsed');
+        tocToggleBtn.classList.remove('active');
     } else {
+        appLayout.classList.remove('toc-collapsed');
         tocToggleBtn.classList.add('active');
     }
 }
