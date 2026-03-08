@@ -820,32 +820,38 @@ body {
         grid-row: 1 / 2;
     }
 
-    .sidebar {
-        position: fixed;
+    /* Sidebar: completely off-screen and invisible when closed on mobile */
+    .sidebar,
+    .sidebar.collapsed {
+        position: fixed !important;
         top: 0;
         left: 0;
         bottom: 0;
         width: var(--sidebar-w) !important;
         z-index: 50;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
         box-shadow: none;
-        /* Ensure nothing leaks through when hidden */
-        visibility: hidden;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        cursor: default !important;
+    }
+
+    /* Override any collapsed-state hover reveals on mobile — nothing should show */
+    .sidebar.collapsed:hover .sidebar-brand,
+    .sidebar.collapsed:hover .top-collapse-btn {
+        opacity: 0;
         pointer-events: none;
     }
 
+    /* Restore when sidebar is explicitly opened */
     .sidebar.open {
-        transform: translateX(0);
+        transform: translateX(0) !important;
         box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    /* Also reset any collapsed-state styles on mobile — sidebar is either open or fully hidden */
-    .sidebar.collapsed {
-        width: var(--sidebar-w) !important;
-        cursor: default;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
 
     .toc-panel {
