@@ -1,8 +1,6 @@
 import { auth, db } from './firebase.js';
 import {
     signInWithEmailAndPassword,
-    signInWithPopup,
-    GoogleAuthProvider,
     signOut,
     onAuthStateChanged
 } from 'firebase/auth';
@@ -33,7 +31,6 @@ const passwordInput = document.getElementById('password');
 const authError = document.getElementById('auth-error');
 const loginSpinner = document.getElementById('login-spinner');
 const logoutBtn = document.getElementById('logout-btn');
-const googleSignInBtn = document.getElementById('google-signin-btn');
 
 const uploadForm = document.getElementById('upload-form');
 const fileInput = document.getElementById('file-input');
@@ -68,17 +65,7 @@ onAuthStateChanged(auth, (user) => {
     else { showLogin(); }
 });
 
-// ── Google Sign-In ──
-googleSignInBtn.addEventListener('click', async () => {
-    authError.classList.add('hidden');
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-    } catch (err) {
-        authError.textContent = err.message;
-        authError.classList.remove('hidden');
-    }
-});
+
 
 // ── Email/Password Sign-In ──
 loginForm.addEventListener('submit', async (e) => {
