@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg-dark: #0f1115;
-    --bg-panel: rgba(25, 28, 35, 0.6);
-    --border-light: rgba(255, 255, 255, 0.1);
-    --accent: #8b5cf6;
-    --accent-hover: #7c3aed;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
+    --bg-dark: #000000;
+    --bg-panel: rgba(10, 10, 10, 0.7);
+    --border-light: rgba(255, 255, 255, 0.08);
+    --accent: #ffffff;
+    --accent-hover: #e4e4e7;
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
     --danger: #ef4444;
     --success: #10b981;
 }
@@ -20,13 +20,16 @@
 
 body.dark-theme {
     background-color: var(--bg-dark);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
 }
 
@@ -43,7 +46,7 @@ body.dark-theme {
 .glow-1 {
     width: 400px;
     height: 400px;
-    background: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
     top: -100px;
     left: -100px;
 }
@@ -51,7 +54,7 @@ body.dark-theme {
 .glow-2 {
     width: 500px;
     height: 500px;
-    background: #3b82f6;
+    background: rgba(255, 255, 255, 0.03);
     bottom: -200px;
     right: -100px;
     opacity: 0.3;
@@ -60,7 +63,7 @@ body.dark-theme {
 .glow-3 {
     width: 300px;
     height: 300px;
-    background: #ec4899;
+    background: rgba(255, 255, 255, 0.02);
     top: 40%;
     left: 30%;
     opacity: 0.15;
@@ -218,8 +221,8 @@ body.dark-theme {
 
 .nav-item.active {
     background: var(--accent);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    color: #000;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-footer {
@@ -282,7 +285,7 @@ body.dark-theme {
 
 .drop-zone.dragover {
     border-color: var(--accent);
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .drop-zone-content {
@@ -322,8 +325,8 @@ body.dark-theme {
 .selected-file {
     margin-top: 16px;
     padding: 8px 12px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     color: var(--accent);
     font-size: 0.875rem;
@@ -371,7 +374,7 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 select option {
@@ -406,7 +409,7 @@ textarea {
 /* ── BUTTONS ── */
 .btn-primary {
     background: var(--accent);
-    color: #fff;
+    color: #000;
     border: none;
     padding: 12px 24px;
     border-radius: 8px;
